@@ -1,10 +1,10 @@
-Import-Module ModuleData
+Import-Module PSModuleManager
 Import-Module Read-Menu
 
-$SettingsManager = ModuleData -ScriptRoot $PSScriptRoot -FileName 'settings'
+$SettingsManager = PSModuleManager -ScriptRoot $PSScriptRoot -FileName 'settings'
 $Settings = $SettingsManager.FileContent
 
-$PromptsManager = ModuleData -ScriptRoot $PSScriptRoot -FileName 'prompts'
+$PromptsManager = PSModuleManager -ScriptRoot $PSScriptRoot -FileName 'prompts'
 $Prompts = PromptsManager.FileContent
 
 # Will ddd this as a setting later.
