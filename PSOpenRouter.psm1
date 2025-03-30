@@ -84,7 +84,7 @@ function New-Stream($UserInput, $SystemPrompt, $HttpClient) {
     }
 
     $requestBody = @{
-        model    = $Settings.Model.CurrentModel
+        model    = $Settings.CurrentModel
         messages = $messages
         stream   = 'true'
     } | ConvertTo-Json
@@ -153,7 +153,7 @@ function Save-ToCurrentMessageHistory($UserInput, $ModelResponse) {
 }
 
 function Open-SettingsMenu() {
-    $selectedAction = Read-Menu -Header 'PSOpenRouter Settings' -Options @('Model', 'Prompts') -ExitOption 'Exit' -CleanUpAfter
+    $selectedAction = Read-Menu -Header 'PSOpenRouter settings' -Options @('Model', 'Prompts') -ExitOption 'Exit' -CleanUpAfter
 
     switch ($selectedAction) {
         'Model' {
@@ -168,7 +168,7 @@ function Open-SettingsMenu() {
 }
 
 function Open-ModelMenu() {
-    $selectedAction = Read-Menu -Header "Model settings" -Subheader ("Current model: $($Settings.CurrentModel)") -Options ('Add model', 'Change model') -ExitOption 'Exit' -CleanUpAfter
+    $selectedAction = Read-Menu -Header "Model settings" -Subheader ("Current model: $($Settings.CurrentModel)", '') -Options ('Add model', 'Change model') -ExitOption 'Exit' -CleanUpAfter
 
     switch ($selectedAction) {
         'Add model' {
@@ -178,20 +178,20 @@ function Open-ModelMenu() {
                 Write-Host "No model provided." -ForegroundColor Yellow
             }
 
-            $modelsList = $Settings.Model.Models + $newModel
+            $modelsList = $Settings.Models + $newModel
 
-            $SettingsManager.SetValue(('Model', 'CurrentModel'), $newModel)
-            $SettingsManager.SetValue(('Model', 'Models'), $modelsList)
+            $SettingsManager.Set(('CurrentModel'), $newModel)
+            $SettingsManager.Set(('Models'), $modelsList)
 
             Write-Host "$newModel set to current model."`n -ForegroundColor Yellow
         }
         'Change model' {
 
-            $selectedModel = Read-Menu -Header 'Select model' -Options $Settings.Model.Models -ExitOption 'Exit' -CleanUpAfter
+            $selectedModel = Read-Menu -Header 'Select model' -Options $Settings.Models -ExitOption 'Exit' -CleanUpAfter
 
             switch ($selectedModel) {
                 default {
-                    $SettingsManager.SetValue(('Model', 'CurrentModel'), $selectedModel)
+                    $SettingsManager.Set(('CurrentModel'), $selectedModel)
                     Write-Host "Current model set to $selectedModel."`n -ForegroundColor Yellow
                 }
 
