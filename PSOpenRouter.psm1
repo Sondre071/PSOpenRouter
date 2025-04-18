@@ -13,7 +13,7 @@ $LLMTextColor = 'Cyan'
 $CurrentMessageHistory = [System.Collections.Generic.List[PSObject]]::new()
 
 function OR() {
-    $selectedAction = Read-Menu -Header 'PSOpenRouter' -Options @('New session', 'Settings') -ExitOption 'Exit' -CleanUpAfter
+    $selectedAction = Read-Menu -Header 'PSOpenRouter' -Options ('New session', 'Settings') -ExitOption 'Exit' -CleanUpAfter
 
     switch ($selectedAction) {
         'New session' {
@@ -35,6 +35,10 @@ function OR() {
         }
         'Settings' {
             Open-SettingsMenu
+        }
+
+        default {
+            break
         }
 
         'Exit' { break }
