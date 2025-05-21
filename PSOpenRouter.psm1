@@ -19,7 +19,7 @@ function OR() {
         'New session' {
             $promptOptions = 'None' + $Prompts.PSObject.Properties.Name
             
-            $selectedPrompt = Read-Menu -Header 'Select prompt' -Options $promptOptions -ExitOption 'Exit' -CleanUpAfter
+            $selectedPrompt = Read-Menu -Header 'Select prompt' -Options $promptOptions -ExitOption 'Back' -CleanUpAfter
 
             switch ($selectedPrompt) {
                 'None' { 
@@ -30,7 +30,7 @@ function OR() {
                     New-Session -SystemPrompt $Prompts.$selectedPrompt
                 }
 
-                'Exit' { break }
+                'Back' { return OR }
             }
         }
         'Settings' {
@@ -157,7 +157,7 @@ function Save-ToCurrentMessageHistory($UserInput, $ModelResponse) {
 }
 
 function Open-SettingsMenu() {
-    $selectedAction = Read-Menu -Header 'PSOpenRouter settings' -Options @('Model', 'Prompts') -ExitOption 'Exit' -CleanUpAfter
+    $selectedAction = Read-Menu -Header 'PSOpenRouter settings' -Options @('Model', 'Prompts') -ExitOption 'Back' -CleanUpAfter
 
     switch ($selectedAction) {
         'Model' {
@@ -167,6 +167,8 @@ function Open-SettingsMenu() {
         'Prompts' {
             Open-PromptsMenu
         }
+
+        Default { return OR }
 
     }
 }
