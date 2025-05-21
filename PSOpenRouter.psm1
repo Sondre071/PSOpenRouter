@@ -180,6 +180,7 @@ function Open-ModelMenu() {
 
             if (-not $newModel) {
                 Write-Host "No model provided." -ForegroundColor Yellow
+                break
             }
 
             $modelsList = $Settings.Models + $newModel
