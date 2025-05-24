@@ -200,22 +200,14 @@ function Open-ModelMenu() {
 
                 $SettingsManager.Set(('CurrentModel'), $newModel, $True)
                 $SettingsManager.Set(('Models'), $modelsList, $True)
-
-                Write-Host "$newModel set to current model."`n -ForegroundColor Yellow
             }
+
             'Change model' {
-                $looping = $true
-                while ($looping) {
+                $selectedModel = Read-Menu -Header 'Select model' -Options $Settings.Models -ExitOption 'Exit' -CleanUpAfter
 
-                    $selectedModel = Read-Menu -Header 'Select model' -Options $Settings.Models -ExitOption 'Exit' -CleanUpAfter
-
-                    switch ($selectedModel) {
-                        default {
-                            $SettingsManager.Set(('CurrentModel'), $selectedModel, $True)
-                            Write-Host "Current model set to $selectedModel."`n -ForegroundColor Yellow
-                        }
-
-                        'Exit' { $looping = $false }
+                switch ($selectedModel) {
+                    default {
+                        $SettingsManager.Set(('CurrentModel'), $selectedModel, $True)
                     }
                 }
             }
@@ -229,6 +221,10 @@ function Open-ModelMenu() {
                         default {
                             $Settings.Models = $Settings.Models -ne $selectedModel
                             $SettingsManager.Set(('Models'), $Settings.Models, $true)
+
+                            if ($selectedModel -eq $Settings.CurrentModel) {
+                                $SettingsManager.Set(('CurrentModel'), '', $true)
+                            }
                         }
 
                         'Exit' {
