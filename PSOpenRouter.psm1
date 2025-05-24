@@ -187,7 +187,7 @@ function Open-ModelMenu() {
     $looping = $true
     while ($looping) {
 
-        $selectedAction = Read-Menu -Header "Model settings" -Subheader ("Current model: $($Settings.CurrentModel)", '') -Options ('Add model', 'Change model', 'Remove model') -ExitOption 'Back' -CleanUpAfter
+        $selectedAction = Read-Menu -Header "Model settings" -Subheaders ("Current model: $($Settings.CurrentModel)", '') -Options ('Add model', 'Change model', 'Remove model') -ExitOption 'Back' -CleanUpAfter
 
         switch ($selectedAction) {
             'Add model' {
@@ -233,6 +233,34 @@ function Open-ModelMenu() {
                     }
                 }
             }
+
+            'Back' {
+                $looping = $false
+            }
+        }
+    }
+}
+
+function Open-PromptsMenu {
+    $looping = $true
+    while ($looping) {
+
+
+        $action = Read-Menu -Header "Prompt settings" -Options ("Add prompt", "Delete prompt") -ExitOption 'Back' -CleanUpAfter
+
+        switch ($action) {
+
+            'Add prompt' {
+                $newPromptName = Read-Input -Header 'Add new prompt' -Instruction 'Name' -CleanUpAfter
+                $newPrompt = Read-Input -Header "New prompt" -Subheaders ("Name: $newPromptName", '') -Instruction 'Prompt' -CleanUpAfter
+
+                if (-not $newPrompt) {
+                    break
+                }
+                $SettingsManager.SetFile("prompts/hello/$newPromptName.txt", $newPrompt)
+
+            }
+
             'Back' {
                 $looping = $false
             }
