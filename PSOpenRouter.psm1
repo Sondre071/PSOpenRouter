@@ -19,7 +19,7 @@ function OR() {
 
         switch ($selectedAction) {
             'New session' {
-                $promptOptions = 'None' + $Prompts.PSObject.Properties.Name
+                $promptOptions = @('None') + $SettingsManager.GetFileNames('prompts')
             
                 $selectedPrompt = Read-Menu -Header 'Select prompt' -Options $promptOptions -ExitOption 'Back' -CleanUpAfter
 
@@ -29,7 +29,7 @@ function OR() {
                     }
 
                     default {
-                        New-Session -SystemPrompt $Prompts.$selectedPrompt
+                        New-Session -SystemPrompt $SettingsManager.GetFile("prompts/$selectedPrompt.txt")
                     }
 
                     'Back' { break }
@@ -257,7 +257,7 @@ function Open-PromptsMenu {
                 if (-not $newPrompt) {
                     break
                 }
-                $SettingsManager.SetFile("prompts/hello/$newPromptName.txt", $newPrompt)
+                $SettingsManager.SetFile("prompts/$newPromptName.txt", $newPrompt)
 
             }
 
