@@ -4,9 +4,6 @@ Import-Module Read-Menu
 $SettingsManager = PSModuleManager -ScriptRoot $PSScriptRoot -FileName 'settings'
 $Settings = $SettingsManager.FileContent
 
-$PromptsManager = PSModuleManager -ScriptRoot $PSScriptRoot -FileName 'prompts'
-$Prompts = PromptsManager.FileContent
-
 # Will add this as a setting later.
 $LLMTextColor = 'Cyan'
 
@@ -15,13 +12,13 @@ $CurrentMessageHistory = [System.Collections.Generic.List[PSObject]]::new()
 function OR() {
     while ($true) {
 
-        $selectedAction = Read-Menu -Header 'PSOpenRouter' -Options ('New session', 'Settings') -ExitOption 'Exit' -CleanUpAfter
+        $selectedAction = Read-Menu -Header 'PSOpenRouter' -Options ('New session', 'Settings') -ExitOption 'Exit'
 
         switch ($selectedAction) {
             'New session' {
                 $promptOptions = @('None') + $SettingsManager.GetFileNames('prompts')
             
-                $selectedPrompt = Read-Menu -Header 'Select prompt' -Options $promptOptions -ExitOption 'Back' -CleanUpAfter
+                $selectedPrompt = Read-Menu -Header 'Select prompt' -Options $promptOptions -ExitOption 'Back'
 
                 switch ($selectedPrompt) {
                     'None' { 
@@ -167,7 +164,7 @@ function Open-SettingsMenu() {
     $looping = $true
     while ($looping) {
 
-        $selectedAction = Read-Menu -Header 'PSOpenRouter settings' -Options @('Model', 'Prompts') -ExitOption 'Back' -CleanUpAfter
+        $selectedAction = Read-Menu -Header 'PSOpenRouter settings' -Options @('Model', 'Prompts') -ExitOption 'Back'
 
         switch ($selectedAction) {
             'Model' {
@@ -187,11 +184,11 @@ function Open-ModelMenu() {
     $looping = $true
     while ($looping) {
 
-        $selectedAction = Read-Menu -Header "Model settings" -Subheaders ("Current model: $($Settings.CurrentModel)", '') -Options ('Add model', 'Change model', 'Remove model') -ExitOption 'Back' -CleanUpAfter
+        $selectedAction = Read-Menu -Header "Model settings" -Subheaders ("Current model: $($Settings.CurrentModel)", '') -Options ('Add model', 'Change model', 'Remove model') -ExitOption 'Back'
 
         switch ($selectedAction) {
             'Add model' {
-                $newModel = Read-Input -Header 'Add model' -Instruction 'Enter OpenRouter model id' -CleanUpAfter
+                $newModel = Read-Input -Header 'Add model' -Instruction 'Enter OpenRouter model id'
 
                 if (-not $newModel) {
                     break
@@ -203,7 +200,7 @@ function Open-ModelMenu() {
             }
 
             'Change model' {
-                $selectedModel = Read-Menu -Header 'Select model' -Options $Settings.Models -ExitOption 'Exit' -CleanUpAfter
+                $selectedModel = Read-Menu -Header 'Select model' -Options $Settings.Models -ExitOption 'Exit'
 
                 switch ($selectedModel) {
                     default {
@@ -215,7 +212,7 @@ function Open-ModelMenu() {
             'Remove model' {
                 $looping = $true
                 while ($looping) {
-                    $selectedModel = Read-Menu -Header 'Delete model' -Options $Settings.Models -ExitOption 'Exit' -CleanUpAfter
+                    $selectedModel = Read-Menu -Header 'Delete model' -Options $Settings.Models -ExitOption 'Exit'
 
                     switch ($selectedModel) {
                         default {
@@ -246,13 +243,13 @@ function Open-PromptsMenu {
     while ($looping) {
 
 
-        $action = Read-Menu -Header "Prompt settings" -Options ("Add prompt", "Delete prompt") -ExitOption 'Back' -CleanUpAfter
+        $action = Read-Menu -Header "Prompt settings" -Options ("Add prompt", "Delete prompt") -ExitOption 'Back'
 
         switch ($action) {
 
             'Add prompt' {
-                $newPromptName = Read-Input -Header 'Add new prompt' -Instruction 'Name' -CleanUpAfter
-                $newPrompt = Read-Input -Header "New prompt" -Subheaders ("Name: $newPromptName", '') -Instruction 'Prompt' -CleanUpAfter
+                $newPromptName = Read-Input -Header 'Add new prompt' -Instruction 'Name'
+                $newPrompt = Read-Input -Header "New prompt" -Subheaders ("Name: $newPromptName", '') -Instruction 'Prompt'
 
                 if (-not $newPrompt) {
                     break
