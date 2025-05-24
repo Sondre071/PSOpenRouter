@@ -7,7 +7,7 @@ $Settings = $SettingsManager.FileContent
 $PromptsManager = PSModuleManager -ScriptRoot $PSScriptRoot -FileName 'prompts'
 $Prompts = PromptsManager.FileContent
 
-# Will ddd this as a setting later.
+# Will add this as a setting later.
 $LLMTextColor = 'Cyan'
 
 $CurrentMessageHistory = [System.Collections.Generic.List[PSObject]]::new()
@@ -184,11 +184,10 @@ function Open-ModelMenu() {
                 Write-Host "No model provided." -ForegroundColor Yellow
                 break
             }
-
             $modelsList = $Settings.Models + $newModel
 
-            $SettingsManager.Set(('CurrentModel'), $newModel)
-            $SettingsManager.Set(('Models'), $modelsList)
+            $SettingsManager.Set(('CurrentModel'), $newModel, $True)
+            $SettingsManager.Set(('Models'), $modelsList, $True)
 
             Write-Host "$newModel set to current model."`n -ForegroundColor Yellow
         }
@@ -198,7 +197,7 @@ function Open-ModelMenu() {
 
             switch ($selectedModel) {
                 default {
-                    $SettingsManager.Set(('CurrentModel'), $selectedModel)
+                    $SettingsManager.Set(('CurrentModel'), $selectedModel, $True)
                     Write-Host "Current model set to $selectedModel."`n -ForegroundColor Yellow
                 }
 
