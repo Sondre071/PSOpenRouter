@@ -116,9 +116,13 @@ function Read-Stream($Stream) {
     $firstToken = $true
 
     while (-not $reader.EndOfStream) {
+        if ([Console]::KeyAvailable -and [Console]::ReadKey($true).Key -eq 'Q') {
+            break
+        }
+
         $line = $reader.ReadLine()
         
-        $valuesToSkip = @(': OPENROUTER PROCESSING', 'data: [DONE]', '')
+        $valuesToSkip = (': OPENROUTER PROCESSING', 'data: [DONE]', '')
 
         if ($line -in $valuesToSkip) { continue }
 
