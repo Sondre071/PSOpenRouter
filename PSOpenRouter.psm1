@@ -13,35 +13,38 @@ $LLMTextColor = 'Cyan'
 $CurrentMessageHistory = [System.Collections.Generic.List[PSObject]]::new()
 
 function OR() {
-    $selectedAction = Read-Menu -Header 'PSOpenRouter' -Options ('New session', 'Settings') -ExitOption 'Exit' -CleanUpAfter
+    while ($true) {
 
-    switch ($selectedAction) {
-        'New session' {
-            $promptOptions = 'None' + $Prompts.PSObject.Properties.Name
+        $selectedAction = Read-Menu -Header 'PSOpenRouter' -Options ('New session', 'Settings') -ExitOption 'Exit' -CleanUpAfter
+
+        switch ($selectedAction) {
+            'New session' {
+                $promptOptions = 'None' + $Prompts.PSObject.Properties.Name
             
-            $selectedPrompt = Read-Menu -Header 'Select prompt' -Options $promptOptions -ExitOption 'Back' -CleanUpAfter
+                $selectedPrompt = Read-Menu -Header 'Select prompt' -Options $promptOptions -ExitOption 'Back' -CleanUpAfter
 
-            switch ($selectedPrompt) {
-                'None' { 
-                    New-Session -SystemPrompt $null
+                switch ($selectedPrompt) {
+                    'None' { 
+                        New-Session -SystemPrompt $null
+                    }
+
+                    default {
+                        New-Session -SystemPrompt $Prompts.$selectedPrompt
+                    }
+
+                    'Back' { break }
                 }
-
-                default {
-                    New-Session -SystemPrompt $Prompts.$selectedPrompt
-                }
-
-                'Back' { return OR }
             }
-        }
-        'Settings' {
-            Open-SettingsMenu
-        }
+            'Settings' {
+                Open-SettingsMenu
+            }
 
-        default {
-            break
-        }
+            default {
+                break
+            }
 
-        'Exit' { break }
+            'Exit' { return }
+        }
     }
 }
 
@@ -161,55 +164,85 @@ function Save-ToCurrentMessageHistory($UserInput, $ModelResponse) {
 }
 
 function Open-SettingsMenu() {
-    $selectedAction = Read-Menu -Header 'PSOpenRouter settings' -Options @('Model', 'Prompts') -ExitOption 'Back' -CleanUpAfter
+    $looping = $true
+    while ($looping) {
 
-    switch ($selectedAction) {
-        'Model' {
-            Open-ModelMenu
+        $selectedAction = Read-Menu -Header 'PSOpenRouter settings' -Options @('Model', 'Prompts') -ExitOption 'Back' -CleanUpAfter
+
+        switch ($selectedAction) {
+            'Model' {
+                Open-ModelMenu
+            }
+
+            'Prompts' {
+                Open-PromptsMenu
+            }
+
+            Default { $looping = $false }
         }
-
-        'Prompts' {
-            Open-PromptsMenu
-        }
-
-        Default { return OR }
-
     }
 }
 
 function Open-ModelMenu() {
-    $selectedAction = Read-Menu -Header "Model settings" -Subheader ("Current model: $($Settings.CurrentModel)", '') -Options ('Add model', 'Change model') -ExitOption 'Exit' -CleanUpAfter
+    $looping = $true
+    while ($looping) {
 
-    switch ($selectedAction) {
-        'Add model' {
-            $newModel = Read-Input -Header 'Add model' -Instruction 'Enter OpenRouter model id' -CleanUpAfter
+        $selectedAction = Read-Menu -Header "Model settings" -Subheader ("Current model: $($Settings.CurrentModel)", '') -Options ('Add model', 'Change model', 'Remove model') -ExitOption 'Back' -CleanUpAfter
 
-            if (-not $newModel) {
-                Write-Host "No model provided." -ForegroundColor Yellow
-                break
-            }
-            $modelsList = $Settings.Models + $newModel
+        switch ($selectedAction) {
+            'Add model' {
+                $newModel = Read-Input -Header 'Add model' -Instruction 'Enter OpenRouter model id' -CleanUpAfter
 
-            $SettingsManager.Set(('CurrentModel'), $newModel, $True)
-            $SettingsManager.Set(('Models'), $modelsList, $True)
-
-            Write-Host "$newModel set to current model."`n -ForegroundColor Yellow
-        }
-        'Change model' {
-
-            $selectedModel = Read-Menu -Header 'Select model' -Options $Settings.Models -ExitOption 'Exit' -CleanUpAfter
-
-            switch ($selectedModel) {
-                default {
-                    $SettingsManager.Set(('CurrentModel'), $selectedModel, $True)
-                    Write-Host "Current model set to $selectedModel."`n -ForegroundColor Yellow
+                if (-not $newModel) {
+                    break
                 }
+                $modelsList = $Settings.Models + $newModel
 
-                'Exit' { Write-Host 'Current model not changed.'`n -ForegroundColor Yellow; break }
+                $SettingsManager.Set(('CurrentModel'), $newModel, $True)
+                $SettingsManager.Set(('Models'), $modelsList, $True)
 
+                Write-Host "$newModel set to current model."`n -ForegroundColor Yellow
+            }
+            'Change model' {
+                $looping = $true
+
+                while ($looping) {
+
+                    $selectedModel = Read-Menu -Header 'Select model' -Options $Settings.Models -ExitOption 'Exit' -CleanUpAfter
+
+                    switch ($selectedModel) {
+                        default {
+                            $SettingsManager.Set(('CurrentModel'), $selectedModel, $True)
+                            Write-Host "Current model set to $selectedModel."`n -ForegroundColor Yellow
+                        }
+
+                        'Exit' { $looping = $false }
+                    }
+                }
+            }
+
+            'Remove model' {
+                $looping = $true
+
+                while ($looping) {
+                    $selectedModel = Read-Menu -Header 'Delete model' -Options $Settings.Models -ExitOption 'Exit' -CleanUpAfter
+
+                    switch ($selectedModel) {
+                        default {
+                            $Settings.Models = $Settings.Models -ne $selectedModel
+                            $SettingsManager.Set(('Models'), $Settings.Models, $true)
+                        }
+
+                        'Exit' {
+                            $looping = $false
+                        }
+                    }
+                }
+            }
+            'Back' {
+                $looping = $false
             }
         }
-        'Exit' { break }
     }
 }
 
