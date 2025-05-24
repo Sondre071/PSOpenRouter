@@ -205,7 +205,6 @@ function Open-ModelMenu() {
             }
             'Change model' {
                 $looping = $true
-
                 while ($looping) {
 
                     $selectedModel = Read-Menu -Header 'Select model' -Options $Settings.Models -ExitOption 'Exit' -CleanUpAfter
@@ -223,7 +222,6 @@ function Open-ModelMenu() {
 
             'Remove model' {
                 $looping = $true
-
                 while ($looping) {
                     $selectedModel = Read-Menu -Header 'Delete model' -Options $Settings.Models -ExitOption 'Exit' -CleanUpAfter
 
