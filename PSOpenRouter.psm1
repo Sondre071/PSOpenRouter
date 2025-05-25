@@ -58,15 +58,14 @@ function Open-ModelMenu() {
 
     switch ($selectedAction) {
         'Add model' {
-            $newModel = Read-Input -Header 'Add model' -Instruction 'Enter OpenRouter model id'
+            $newModel = Read-Input -Header 'Add model' -Instruction 'Model id'
 
-            if (-not $newModel) {
-                break
+            if ($newModel) {
+                $modelsList = $Settings.Models + $newModel
+
+                $SettingsManager.Set(('CurrentModel'), $newModel, $True)
+                $SettingsManager.Set(('Models'), $modelsList, $True)
             }
-            $modelsList = $Settings.Models + $newModel
-
-            $SettingsManager.Set(('CurrentModel'), $newModel, $True)
-            $SettingsManager.Set(('Models'), $modelsList, $True)
 
             return { Open-ModelMenu }
         }
