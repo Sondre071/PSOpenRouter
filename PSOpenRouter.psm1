@@ -10,37 +10,124 @@ $LLMTextColor = 'Cyan'
 $CurrentMessageHistory = [System.Collections.Generic.List[PSObject]]::new()
 
 function OR() {
+    $menu = { Open-MainMenu }
+    while ($menu) {
+        $menu = & $menu
+    }
+}
+
+function Open-MainMenu() {
+    $action = Read-Menu -Header 'PSOpenRouter' -Options ('New session', 'Settings') -ExitOption 'Exit'
+    switch ($action) {
+        'New session' { return { Open-NewSessionMenu } }
+
+        'Settings' { return { Open-SettingsMenu } }
+
+        'Exit' { return $null }
+    }
+}
+
+function Open-NewSessionMenu() {
+    $promptOptions = @('None') + $SettingsManager.GetFileNames('prompts')
+            
+    $selectedPrompt = Read-Menu -Header 'Select prompt' -Options $promptOptions -ExitOption 'Back'
+
+    switch ($selectedPrompt) {
+        'None' { New-Session -SystemPrompt $null }
+
+        default { New-Session -SystemPrompt $SettingsManager.GetFile("prompts/$selectedPrompt.txt") }
+
+        'Back' { return { Open-MainMenu } }
+    }
+}
+
+function Open-SettingsMenu() {
+    $action = Read-Menu -Header 'PSOpenRouter settings' -Options @('Model', 'Prompts') -ExitOption 'Back'
+
+    switch ($action) {
+        'Model' { return { Open-ModelMenu } }
+
+        'Prompts' { return { Open-PromptsMenu } }
+
+        'Back' { return { Open-MainMenu } }
+    }
+}
+
+function Open-ModelMenu() {
+    $selectedAction = Read-Menu -Header 'Model settings' -Subheaders ("Current model: $($Settings.CurrentModel)", '') -Options ('Add model', 'Change model', 'Remove model') -ExitOption 'Back'
+
+    switch ($selectedAction) {
+        'Add model' {
+            $newModel = Read-Input -Header 'Add model' -Instruction 'Enter OpenRouter model id'
+
+            if (-not $newModel) {
+                break
+            }
+            $modelsList = $Settings.Models + $newModel
+
+            $SettingsManager.Set(('CurrentModel'), $newModel, $True)
+            $SettingsManager.Set(('Models'), $modelsList, $True)
+
+            return { Open-ModelMenu }
+        }
+
+        'Change model' {
+            $selectedModel = Read-Menu -Header 'Select model' -Options $Settings.Models -ExitOption 'Exit'
+
+            switch ($selectedModel) {
+                default {
+                    $SettingsManager.Set(('CurrentModel'), $selectedModel, $True)
+                    return { Open-ModelMenu }
+                }
+
+                'Exit' { return { Open-ModelMenu } }
+            }
+        }
+
+        'Remove model' { return { Open-RemoveModelMenu } }
+
+        'Back' { return { Open-SettingsMenu } }
+    }
+}
+
+function Open-RemoveModelMenu() {
     while ($true) {
 
-        $selectedAction = Read-Menu -Header 'PSOpenRouter' -Options ('New session', 'Settings') -ExitOption 'Exit'
-        switch ($selectedAction) {
-            'New session' {
-                $promptOptions = @('None') + $SettingsManager.GetFileNames('prompts')
-            
-                $selectedPrompt = Read-Menu -Header 'Select prompt' -Options $promptOptions -ExitOption 'Back'
+        $selectedModel = Read-Menu -Header 'Delete model' -Options $Settings.Models -ExitOption 'Back'
+        switch ($selectedModel) {
+            default {
+                $Settings.Models = $Settings.Models -ne $selectedModel
+                $SettingsManager.Set(('Models'), $Settings.Models, $true)
 
-                switch ($selectedPrompt) {
-                    'None' { 
-                        New-Session -SystemPrompt $null
-                    }
-
-                    default {
-                        New-Session -SystemPrompt $SettingsManager.GetFile("prompts/$selectedPrompt.txt")
-                    }
-
-                    'Back' { break }
+                if ($selectedModel -eq $Settings.CurrentModel) {
+                    $SettingsManager.Set(('CurrentModel'), '', $true)
                 }
             }
-            'Settings' {
-                Open-SettingsMenu
-            }
 
-            default {
+            'Back' { return { Open-ModelMenu } }
+        }
+    }
+}
+
+function Open-PromptsMenu {
+
+    $action = Read-Menu -Header 'Prompt settings' -Options ('Add prompt') -ExitOption 'Back'
+    switch ($action) {
+
+        'Add prompt' {
+            $newPromptName = Read-Input -Header 'Add new prompt' -Instruction 'Name'
+            $newPrompt = Read-Input -Header 'New prompt' -Subheaders ("Name: $newPromptName", '') -Instruction 'Prompt'
+
+            if (-not $newPrompt) {
                 break
             }
 
-            'Exit' { return }
+            $SettingsManager.SetFile("prompts/$newPromptName.txt", $newPrompt)
+
+            return { Open-PromptsMenu }
         }
+
+        'Back' { return { Open-SettingsMenu } }
     }
 }
 
@@ -50,7 +137,7 @@ function New-Session($SystemPrompt) {
     $httpClient = [System.Net.Http.HttpClient]::new()
 
     Write-MenuHeader -Header 'Chat session'
-        Write-Host
+    Write-Host
 
     while ($true) {
         $userInput = Read-Host "You"
@@ -157,114 +244,6 @@ function Save-ToCurrentMessageHistory($UserInput, $ModelResponse) {
                 role    = 'assistant'
                 content = $ModelResponse
             })
-    }
-}
-
-function Open-SettingsMenu() {
-    $looping = $true
-    while ($looping) {
-
-        $selectedAction = Read-Menu -Header 'PSOpenRouter settings' -Options @('Model', 'Prompts') -ExitOption 'Back'
-
-        switch ($selectedAction) {
-            'Model' {
-                Open-ModelMenu
-            }
-
-            'Prompts' {
-                Open-PromptsMenu
-            }
-
-            default { $looping = $false }
-        }
-    }
-}
-
-function Open-ModelMenu() {
-    $looping = $true
-    while ($looping) {
-
-        $selectedAction = Read-Menu -Header 'Model settings' -Subheaders ("Current model: $($Settings.CurrentModel)", '') -Options ('Add model', 'Change model', 'Remove model') -ExitOption 'Back'
-
-        switch ($selectedAction) {
-            'Add model' {
-                $newModel = Read-Input -Header 'Add model' -Instruction 'Enter OpenRouter model id'
-
-                if (-not $newModel) {
-                    break
-                }
-                $modelsList = $Settings.Models + $newModel
-
-                $SettingsManager.Set(('CurrentModel'), $newModel, $True)
-                $SettingsManager.Set(('Models'), $modelsList, $True)
-            }
-
-            'Change model' {
-                $selectedModel = Read-Menu -Header 'Select model' -Options $Settings.Models -ExitOption 'Exit'
-
-                switch ($selectedModel) {
-                    default {
-                        $SettingsManager.Set(('CurrentModel'), $selectedModel, $True)
-                    }
-
-                    'Exit' {
-                        break
-                    }
-                }
-            }
-
-            'Remove model' {
-                $looping = $true
-                while ($looping) {
-                    $selectedModel = Read-Menu -Header 'Delete model' -Options $Settings.Models -ExitOption 'Back'
-
-                    switch ($selectedModel) {
-                        default {
-                            $Settings.Models = $Settings.Models -ne $selectedModel
-                            $SettingsManager.Set(('Models'), $Settings.Models, $true)
-
-                            if ($selectedModel -eq $Settings.CurrentModel) {
-                                $SettingsManager.Set(('CurrentModel'), '', $true)
-                            }
-                        }
-
-                        'Back' {
-                            $looping = $false
-                        }
-                    }
-                }
-            }
-
-            'Back' {
-                $looping = $false
-            }
-        }
-    }
-}
-
-function Open-PromptsMenu {
-    $looping = $true
-    while ($looping) {
-
-        $action = Read-Menu -Header 'Prompt settings' -Options ('Add prompt') -ExitOption 'Back'
-
-        switch ($action) {
-
-            'Add prompt' {
-                $newPromptName = Read-Input -Header 'Add new prompt' -Instruction 'Name'
-                $newPrompt = Read-Input -Header 'New prompt' -Subheaders ("Name: $newPromptName", '') -Instruction 'Prompt'
-
-                if (-not $newPrompt) {
-                    break
-                }
-                $SettingsManager.SetFile("prompts/$newPromptName.txt", $newPrompt)
-
-            }
-
-            'Back' {
-                $looping = $false
-            }
-        }
     }
 }
 
