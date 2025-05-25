@@ -13,7 +13,6 @@ function OR() {
     while ($true) {
 
         $selectedAction = Read-Menu -Header 'PSOpenRouter' -Options ('New session', 'Settings') -ExitOption 'Exit'
-
         switch ($selectedAction) {
             'New session' {
                 $promptOptions = @('None') + $SettingsManager.GetFileNames('prompts')
@@ -50,7 +49,8 @@ function New-Session($SystemPrompt) {
 
     $httpClient = [System.Net.Http.HttpClient]::new()
 
-    Write-MenuHeader -Header "PSOpenRouter session"
+    Write-MenuHeader -Header 'Chat session'
+        Write-Host
 
     while ($true) {
         $userInput = Read-Host "You"
@@ -175,7 +175,7 @@ function Open-SettingsMenu() {
                 Open-PromptsMenu
             }
 
-            Default { $looping = $false }
+            default { $looping = $false }
         }
     }
 }
@@ -184,7 +184,7 @@ function Open-ModelMenu() {
     $looping = $true
     while ($looping) {
 
-        $selectedAction = Read-Menu -Header "Model settings" -Subheaders ("Current model: $($Settings.CurrentModel)", '') -Options ('Add model', 'Change model', 'Remove model') -ExitOption 'Back'
+        $selectedAction = Read-Menu -Header 'Model settings' -Subheaders ("Current model: $($Settings.CurrentModel)", '') -Options ('Add model', 'Change model', 'Remove model') -ExitOption 'Back'
 
         switch ($selectedAction) {
             'Add model' {
@@ -206,13 +206,17 @@ function Open-ModelMenu() {
                     default {
                         $SettingsManager.Set(('CurrentModel'), $selectedModel, $True)
                     }
+
+                    'Exit' {
+                        break
+                    }
                 }
             }
 
             'Remove model' {
                 $looping = $true
                 while ($looping) {
-                    $selectedModel = Read-Menu -Header 'Delete model' -Options $Settings.Models -ExitOption 'Exit'
+                    $selectedModel = Read-Menu -Header 'Delete model' -Options $Settings.Models -ExitOption 'Back'
 
                     switch ($selectedModel) {
                         default {
@@ -224,7 +228,7 @@ function Open-ModelMenu() {
                             }
                         }
 
-                        'Exit' {
+                        'Back' {
                             $looping = $false
                         }
                     }
@@ -242,14 +246,13 @@ function Open-PromptsMenu {
     $looping = $true
     while ($looping) {
 
-
-        $action = Read-Menu -Header "Prompt settings" -Options ("Add prompt", "Delete prompt") -ExitOption 'Back'
+        $action = Read-Menu -Header 'Prompt settings' -Options ('Add prompt') -ExitOption 'Back'
 
         switch ($action) {
 
             'Add prompt' {
                 $newPromptName = Read-Input -Header 'Add new prompt' -Instruction 'Name'
-                $newPrompt = Read-Input -Header "New prompt" -Subheaders ("Name: $newPromptName", '') -Instruction 'Prompt'
+                $newPrompt = Read-Input -Header 'New prompt' -Subheaders ("Name: $newPromptName", '') -Instruction 'Prompt'
 
                 if (-not $newPrompt) {
                     break
