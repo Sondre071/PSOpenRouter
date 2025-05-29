@@ -4,7 +4,6 @@ Import-Module Read-Menu
 $SettingsManager = PSModuleManager -ScriptRoot $PSScriptRoot -FileName 'settings'
 $Settings = $SettingsManager.FileContent
 
-# Will add this as a setting later.
 $LLMTextColor = 'Cyan'
 
 $CurrentMessageHistory = [System.Collections.Generic.List[PSObject]]::new()
@@ -35,14 +34,18 @@ function Open-NewSessionMenu() {
     switch ($selectedPrompt) {
         'None' { New-Session -SystemPrompt $null }
 
-        default { New-Session -SystemPrompt $SettingsManager.GetFile("prompts/$selectedPrompt.txt") }
+        default {
+            $content = $SettingsManager.GetFile("prompts/$selectedPrompt.txt")
+            $content ??= $SettingsManager.GetFile("prompts/$selectedPrompt.md")
+
+            New-Session -SystemPrompt $content }
 
         'Back' { return { Open-MainMenu } }
     }
 }
 
 function Open-SettingsMenu() {
-    $action = Read-Menu -Header 'PSOpenRouter settings' -Options @('Model', 'Prompts') -ExitOption 'Back'
+    $action = Read-Menu -Header 'Settings' -Options @('Model', 'Prompts') -ExitOption 'Back'
 
     switch ($action) {
         'Model' { return { Open-ModelMenu } }
